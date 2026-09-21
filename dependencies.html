@@ -733,6 +733,9 @@ function init(staticryptConfig, templateConfig) {
             };
         }
 
+        // always keep the hashedPassword for this browser session, so moving between pages doesn't re-prompt
+        try { sessionStorage.setItem(rememberPassphraseKey, hashedPassword); } catch (e) {}
+
         // remember the hashedPassword and set its expiration if necessary
         if (isRememberEnabled && isRememberChecked) {
             window.localStorage.setItem(rememberPassphraseKey, hashedPassword);
@@ -764,6 +767,7 @@ function init(staticryptConfig, templateConfig) {
         } else {
             localStorage.removeItem(rememberPassphraseKey);
             localStorage.removeItem(rememberExpirationKey);
+            try { sessionStorage.removeItem(rememberPassphraseKey); } catch (e) {}
         }
     }
 
@@ -829,7 +833,10 @@ function init(staticryptConfig, templateConfig) {
             }
         }
 
-        const hashedPassword = localStorage.getItem(rememberPassphraseKey);
+        let hashedPassword = localStorage.getItem(rememberPassphraseKey);
+        if (!hashedPassword) {
+            try { hashedPassword = sessionStorage.getItem(rememberPassphraseKey); } catch (e) {}
+        }
 
         if (hashedPassword) {
             // try to decrypt
